@@ -40,8 +40,10 @@ while (scrollPosition < pageHeight) {
 // Definimos variables con los selectores que van a ser evaluados
 let etiquetaPrincipal = "#product-border .catalog-product-item";
 let selectorNombre = ".catalog-product-details .catalog-product-details__name";
-let selectorMarca = ".catalog-product-details .catalog-product-details__logo-container .brand-logo span";
-let selectorPrecio = ".catalog-product-details .catalog-product-details__prices .catalog-prices__list .catalog-prices__offer-price";
+let selectorMarca =
+  ".catalog-product-details .catalog-product-details__logo-container .brand-logo span";
+let selectorPrecio =
+  ".catalog-product-details .catalog-product-details__prices .catalog-prices__list .catalog-prices__offer-price";
 let selectorImagen =
   ".proportional-image-wrapper .images-preview .images-preview-item img";
 
@@ -52,16 +54,21 @@ const prendas = await page.$$eval(
       const nombreElement = product.querySelector(selectors.nombre);
       const marcaElement = product.querySelector(selectors.marca);
       const precioElement = product.querySelector(selectors.precio);
-      const imagenElement = product.querySelector(selectors.imagen);
+      const imagenElement = product.querySelector(selectors.image);
 
-      let nombre = nombreElement? nombreElement.innerText.trim() : "";
-      let marca = marcaElement? marcaElement.innerText.trim() : "";
-      let precio = precioElement? precioElement.innerText.trim() : "";
-      let src = imagenElement? imagenElement.src : "";
+      let nombre = nombreElement ? nombreElement.innerText.trim() : "";
+      let marca = marcaElement ? marcaElement.innerText.trim() : "";
+      let precio = precioElement ? precioElement.innerText.trim() : "";
+      let imagen = imagenElement ? imagenElement.src : "";
 
-      return { nombre, marca, precio, src };
+      return { nombre, marca, precio, imagen };
     }),
-  { nombre: selectorNombre, marca: selectorMarca, precio: selectorPrecio, imagen: selectorImagen }
+  {
+    nombre: selectorNombre,
+    marca: selectorMarca,
+    precio: selectorPrecio,
+    image: selectorImagen,
+  }
 );
 
 console.log(prendas);
