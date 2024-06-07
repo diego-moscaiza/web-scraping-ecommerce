@@ -1,13 +1,18 @@
-import { chromium } from "playwright";
+import { chromium, firefox, webkit } from "playwright";
 
 // usamos headless para que no se abra el navegador
 const browser = await chromium.launch({ headless: false });
+const browser1 = await chromium.launch({ channel: "msedge", headless: false });
+const browser2 = await firefox.launch({ headless: false });
+const browser3 = await webkit.launch({ headless: false });
+
 // creamos una nueva página
 const page = await browser.newPage();
+
 // vamos a la página que nos interesa
-await page.goto(
-  "https://simple.ripley.com.pe/calzado/zapatillas/urbanas?s=mdco&page=1"
-);
+let pageUrl =
+  "https://simple.ripley.com.pe/calzado/zapatillas/urbanas?s=mdco&page=1";
+await page.goto(pageUrl);
 
 // Establecer un tiempo de espera entre cada scroll
 const scrollDelay = 500; // 500ms
@@ -32,32 +37,31 @@ while (scrollPosition < pageHeight) {
   scrollPosition += 500; // incrementar en 500px cada vez
 }
 
-// obtener todos los elementos con la clase = ''
-const prendas = await page.$$eval("#product-border .catalog-product-item", (products) =>
-  products.map((product) => {
-    const imagen = product.querySelector(
-      ".proportional-image-wrapper .images-preview .images-preview-item img"
-    );
-    let src = '';
-    if (imagen && imagen.src) {
-      src = imagen.src;
-    }
+// Definimos variables con los selectores que van a ser evaluados
+let etiquetaPrincipal = "#product-border .catalog-product-item";
+let selectorNombre = ".catalog-product-details .catalog-product-details__name";
+let selectorMarca = ".catalog-product-details .catalog-product-details__logo-container .brand-logo span";
+let selectorPrecio = ".catalog-product-details .catalog-product-details__prices .catalog-prices__list .catalog-prices__offer-price";
+let selectorImagen =
+  ".proportional-image-wrapper .images-preview .images-preview-item img";
 
-    const nombre = product
-      .querySelector(".catalog-product-details .catalog-product-details__name")
-      .innerText.trim();
-    const marca = product
-      .querySelector(
-        ".catalog-product-details .catalog-product-details__logo-container .brand-logo span"
-      )
-      .innerText.trim();
-    const precio = product
-      .querySelector(
-        ".catalog-product-details .catalog-product-details__prices .catalog-prices .catalog-prices__list .catalog-prices__offer-price"
-      )
-      .innerText.trim();
-    return { nombre, marca, precio, src };
-  })
+const prendas = await page.$$eval(
+  etiquetaPrincipal,
+  (products, selectors) =>
+    products.map((product) => {
+      const nombreElement = product.querySelector(selectors.nombre);
+      const marcaElement = product.querySelector(selectors.marca);
+      const precioElement = product.querySelector(selectors.precio);
+      const imagenElement = product.querySelector(selectors.imagen);
+
+      let nombre = nombreElement? nombreElement.innerText.trim() : "";
+      let marca = marcaElement? marcaElement.innerText.trim() : "";
+      let precio = precioElement? precioElement.innerText.trim() : "";
+      let src = imagenElement? imagenElement.src : "";
+
+      return { nombre, marca, precio, src };
+    }),
+  { nombre: selectorNombre, marca: selectorMarca, precio: selectorPrecio, imagen: selectorImagen }
 );
 
 console.log(prendas);
