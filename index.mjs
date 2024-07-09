@@ -56,8 +56,8 @@ const selectors = {
 const prendas = await page.$$eval(
   selectors.etiquetaPrincipal,
   (products, selectors) => {
-    const obtenerTexto = (cadena) => {
-      return cadena ? cadena.innerText.trim() : "";
+    const obtenerTexto = (valor) => {
+      return valor ? valor.innerText.trim() : "";
     };
 
     const primeraLetraMayuscula = (cadena) => {
