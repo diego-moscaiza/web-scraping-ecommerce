@@ -70,7 +70,7 @@ const prendas = await page.$$eval(
 
     const convertirPrecioADecimal = (precioCadena) => {
       if (!precioCadena) return "0.00";
-      const precioCadenaStr = precioCadena.innerText.trim();
+      const precioCadenaStr = obtenerTexto(precioCadena);
       const precioSinSimbolo = precioCadenaStr.replace(/[^0-9.]/g, "");
       const precioDecimal = parseFloat(precioSinSimbolo).toFixed(2);
       return precioDecimal;
