@@ -9,9 +9,12 @@ const browser3 = await webkit.launch({ headless: false });
 // creamos una nueva página
 const page = await browser.newPage();
 
+// Definimos el numero de página
+let numberPage = 3;
+
 // vamos a la página que nos interesa
-let pageUrl =
-  "https://simple.ripley.com.pe/calzado/zapatillas/urbanas?s=mdco&page=1";
+let pageUrl = `https://simple.ripley.com.pe/calzado/zapatillas/urbanas?s=mdco&page=${numberPage}`;
+
 await page.goto(pageUrl);
 
 // Establecer un tiempo de espera entre cada scroll
@@ -36,40 +39,75 @@ while (scrollPosition < pageHeight) {
   // Incrementar la posición del scroll
   scrollPosition += 500; // incrementar en 500px cada vez
 }
-
 // Definimos variables con los selectores que van a ser evaluados
-let etiquetaPrincipal = "#product-border .catalog-product-item";
-let selectorNombre = ".catalog-product-details .catalog-product-details__name";
-let selectorMarca =
-  ".catalog-product-details .catalog-product-details__logo-container .brand-logo span";
-let selectorPrecio =
-  ".catalog-product-details .catalog-product-details__prices .catalog-prices__list .catalog-prices__offer-price";
-let selectorImagen =
-  ".proportional-image-wrapper .images-preview .images-preview-item img";
+const selectors = {
+  etiquetaPrincipal: "#product-border .catalog-product-item",
+  selectorNombre: ".catalog-product-details .catalog-product-details__name",
+  selectorMarca:
+    ".catalog-product-details .catalog-product-details__logo-container .brand-logo span",
+  selectorPrecioOferta:
+    ".catalog-product-details .catalog-product-details__prices .catalog-prices__list .catalog-prices__offer-price",
+  selectorPrecioNormal:
+    ".catalog-product-details .catalog-product-details__prices .catalog-prices__list .catalog-prices__list-price",
+  selectorImagen:
+    ".proportional-image-wrapper .images-preview .images-preview-item img",
+};
 
 const prendas = await page.$$eval(
-  etiquetaPrincipal,
-  (products, selectors) =>
-    products.map((product) => {
-      const nombreElement = product.querySelector(selectors.nombre);
-      const marcaElement = product.querySelector(selectors.marca);
-      const precioElement = product.querySelector(selectors.precio);
-      const imagenElement = product.querySelector(selectors.image);
+  selectors.etiquetaPrincipal,
+  (products, selectors) => {
+    const convertirPrecioADecimal = (precioCadena) => {
+      const precioCadenaStr = precioCadena.innerText.trim();
+      const precioSinSimbolo = precioCadenaStr.replace(/[^0-9.]/g, "");
+      const precioDecimal = parseFloat(precioSinSimbolo).toFixed(2);
+      return precioDecimal;
+    };
 
-      let nombre = nombreElement ? nombreElement.innerText.trim() : "";
-      let marca = marcaElement ? marcaElement.innerText.trim() : "";
-      let precio = precioElement ? precioElement.innerText.trim() : "";
-      let imagen = imagenElement ? imagenElement.src : "";
+    return products.map((product) => {
+      const nombreElement = product.querySelector(selectors.selectorNombre);
+      const marcaElement = product.querySelector(selectors.selectorMarca);
+      const precioOfertaElement = product.querySelector(
+        selectors.selectorPrecioOferta
+      );
+      const precioNormalElement = product.querySelector(
+        selectors.selectorPrecioNormal
+      );
+      const imagenElement = product.querySelector(selectors.selectorImagen);
 
-      return { nombre, marca, precio, imagen };
-    }),
-  {
-    nombre: selectorNombre,
-    marca: selectorMarca,
-    precio: selectorPrecio,
-    image: selectorImagen,
-  }
+      const nombre = nombreElement ? nombreElement.innerText.trim() : "";
+      const marca = marcaElement ? marcaElement.innerText.trim() : "";
+      const precio_oferta = precioOfertaElement
+        ? convertirPrecioADecimal(precioOfertaElement)
+        : "0.00";
+      const precio_normal = precioNormalElement
+        ? convertirPrecioADecimal(precioNormalElement)
+        : "0.00";
+      const genero = nombreElement.toUpperCase().includes("HOMBRE")
+        ? "Hombre"
+        : nombre.toUpperCase().includes("MUJER")
+        ? "Mujer"
+        : nombre.toUpperCase().includes("NIÑO")
+        ? "Niño"
+        : nombre.toUpperCase().includes("NIÑA")
+        ? "Niña"
+        : nombre.toUpperCase().includes("UNISEX")
+        ? "Unisex"
+        : "";
+      const imagen = imagenElement ? imagenElement.src : "";
+
+      return {
+        nombre: nombre,
+        marca: marca,
+        precio_oferta: precio_oferta,
+        precio_normal: precio_normal,
+        genero: genero,
+        imagen: imagen,
+      };
+    });
+  },
+  selectors
 );
 
-console.log(prendas);
 await browser.close();
+console.log(prendas);
+process.exit();
