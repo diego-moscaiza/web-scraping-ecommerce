@@ -56,11 +56,39 @@ const selectors = {
 const prendas = await page.$$eval(
   selectors.etiquetaPrincipal,
   (products, selectors) => {
+    const obtenerTexto = (cadena) => {
+      return cadena ? cadena.innerText.trim() : "";
+    };
+
+    const primeraLetraMayuscula = (cadena) => {
+      const cadenaObtenida = obtenerTexto(cadena).toLowerCase();
+      return (
+        cadenaObtenida.charAt(0).toUpperCase() +
+        cadenaObtenida.slice(1).toLowerCase()
+      );
+    };
+
     const convertirPrecioADecimal = (precioCadena) => {
+      if (!precioCadena) return "0.00";
       const precioCadenaStr = precioCadena.innerText.trim();
       const precioSinSimbolo = precioCadenaStr.replace(/[^0-9.]/g, "");
       const precioDecimal = parseFloat(precioSinSimbolo).toFixed(2);
       return precioDecimal;
+    };
+
+    const obtenerGenero = (nombre) => {
+      const nombreObtenido = obtenerTexto(nombre);
+      return nombreObtenido.toUpperCase().includes("HOMBRE")
+        ? "Hombre"
+        : nombreObtenido.toUpperCase().includes("MUJER")
+        ? "Mujer"
+        : nombreObtenido.toUpperCase().includes("NIÑO")
+        ? "Niño"
+        : nombreObtenido.toUpperCase().includes("NIÑA")
+        ? "Niña"
+        : nombreObtenido.toUpperCase().includes("UNISEX")
+        ? "Unisex"
+        : "";
     };
 
     return products.map((product) => {
@@ -74,25 +102,11 @@ const prendas = await page.$$eval(
       );
       const imagenElement = product.querySelector(selectors.selectorImagen);
 
-      const nombre = nombreElement ? nombreElement.innerText.trim() : "";
-      const marca = marcaElement ? marcaElement.innerText.trim() : "";
-      const precio_oferta = precioOfertaElement
-        ? convertirPrecioADecimal(precioOfertaElement)
-        : "0.00";
-      const precio_normal = precioNormalElement
-        ? convertirPrecioADecimal(precioNormalElement)
-        : "0.00";
-      const genero = nombreElement.toUpperCase().includes("HOMBRE")
-        ? "Hombre"
-        : nombre.toUpperCase().includes("MUJER")
-        ? "Mujer"
-        : nombre.toUpperCase().includes("NIÑO")
-        ? "Niño"
-        : nombre.toUpperCase().includes("NIÑA")
-        ? "Niña"
-        : nombre.toUpperCase().includes("UNISEX")
-        ? "Unisex"
-        : "";
+      const nombre = primeraLetraMayuscula(nombreElement);
+      const marca = primeraLetraMayuscula(marcaElement);
+      const precio_oferta = convertirPrecioADecimal(precioOfertaElement);
+      const precio_normal = convertirPrecioADecimal(precioNormalElement);
+      const genero = obtenerGenero(nombreElement);
       const imagen = imagenElement ? imagenElement.src : "";
 
       return {
